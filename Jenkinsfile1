@@ -64,20 +64,28 @@ pipeline {
             }
         }
         stage('Docker Build & Push') {
-            steps {
-                script {
-                    withDockerRegistry(credentialsId: 'docker', toolName: 'docker') {
-                        sh ''' 
-                        echo "Building Docker image..."
-                        docker build --no-cache -t rajanikv/bms:latest -f bookmyshow-app/Dockerfile bookmyshow-app
+  steps {
+    script {
+      withDockerRegistry([credentialsId: 'docker']) {
+        sh '''
+          set -e
+          echo "Workspace: $(pwd)"
+          ls -la
 
-                        echo "Pushing Docker image to registry..."
-                        docker push rajanikv/bms:latest
-                        '''
-                    }
-                }
-            }
-        }
+          echo "Building Docker image..."
+          docker build --no-cache -t rajanikv/bms:latest -f bookmyshow-app/Dockerfile bookmyshow-app
+
+          echo "Verify image exists:"
+          docker images rajanikv/bms
+
+          echo "Pushing Docker image to registry..."
+          docker push rajanikv/bms:latest
+        '''
+      }
+    }
+  }
+}
+
         stage('Deploy to Container') {
             steps {
                 sh ''' 
